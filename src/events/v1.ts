@@ -320,6 +320,19 @@ export async function handleEvent(
         }
 
         if (event.voice_states) {
+          const channelsWithVoiceState = new Set(
+            event.voice_states.map((state) => state.id),
+          );
+
+          for (const channel of client.channels.values()) {
+            if (
+              channel.voiceParticipants.size &&
+              !channelsWithVoiceState.has(channel.id)
+            ) {
+              channel.voiceParticipants.clear();
+            }
+          }
+
           for (const state of event.voice_states) {
             const channel = client.channels.get(state.id);
             if (channel) {
