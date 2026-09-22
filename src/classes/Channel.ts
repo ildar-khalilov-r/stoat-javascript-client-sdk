@@ -33,6 +33,16 @@ import type { ServerMember } from "./ServerMember.js";
 import type { User } from "./User.js";
 import { VoiceParticipant, VoiceStatus } from "./VoiceParticipant.js";
 
+type RoutesOutsideGeneratedSchema = {
+  post(path: string): Promise<unknown>;
+};
+
+type ScreenStreamCredentials = {
+  url: string;
+  stream_key: string;
+  identity: string;
+};
+
 /**
  * Channel Class
  */
@@ -836,6 +846,29 @@ export class Channel {
         force_disconnect: forceDisconnect,
       },
     );
+  }
+
+  /**
+   * Create a WHIP ingress for publishing a natively captured screen stream
+   * @returns WHIP endpoint, stream key and the participant identity it joins as
+   */
+  async startScreenStream() {
+    const api = this.#collection.client
+      .api as unknown as RoutesOutsideGeneratedSchema;
+
+    return (await api.post(
+      `/channels/${this.id}/start_screen_stream`,
+    )) as ScreenStreamCredentials;
+  }
+
+  /**
+   * Remove any WHIP ingress this user has publishing into this channel
+   */
+  async stopScreenStream() {
+    const api = this.#collection.client
+      .api as unknown as RoutesOutsideGeneratedSchema;
+
+    await api.post(`/channels/${this.id}/stop_screen_stream`);
   }
 
   /**
